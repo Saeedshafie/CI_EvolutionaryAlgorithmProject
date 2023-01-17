@@ -38,13 +38,17 @@ class Evolution():
             new_players = prev_players
             return new_players
 
+    # Fitness is Already Calculated, We Have sort and Choose
     def next_population_selection(self, players, num_players):
-
-        # TODO
         # num_players example: 100
         # players: an array of `Player` objects
 
+        # Default Sort and Chose Method, First Implementation
+        players.sort(key=lambda x: x.fitness, reverse=True)
+        return players[: num_players]
+        
+        # Extra if Time
         # TODO (additional): a selection method other than `top-k`
         # TODO (additional): plotting
 
-        return players[: num_players]
+        
