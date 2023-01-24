@@ -2,7 +2,11 @@ from player import Player
 import numpy as np
 import random, copy
 from config import CONFIG
+import os
+import time
 
+# For Generation of Plot File
+#counter = 0
 
 class Evolution():
 
@@ -18,15 +22,15 @@ class Evolution():
 
         # child: an object of class `Player`
 
-        
+
         prob = 0.9
-        
+
         # w1
         noise = np.random.normal(0,0.3,child.nn.w[0].shape)
         rand = random.uniform(0, 1)
         if rand < prob:
             child.nn.w[0] += noise
-        # w2 
+        # w2
         noise = np.random.normal(0,0.3,child.nn.w[1].shape)
         rand = random.uniform(0, 1)
         if rand < prob:
@@ -97,12 +101,74 @@ class Evolution():
         # num_players example: 100
         # players: an array of `Player` objects
 
-        # Default Sort and Chose Method, First Implementation
-        players.sort(key=lambda x: x.fitness, reverse=True)
-        return players[: num_players]
-        
-        # Extra if Time
-        # TODO (additional): a selection method other than `top-k`
-        # TODO (additional): plotting
+        self.save_fitness(players)
+        self.save_fitness_average_max_min(players)
 
-        
+        Mode = 1
+
+        # Default Sort and Choose Method, First Implementation
+        if Mode == 1:
+            players.sort(key=lambda x: x.fitness, reverse=True)
+            return players[: num_players]
+
+        # TODO (additional): a selection method other than `top-k`
+        elif Mode == 2:
+            # First Part : Building the First Ruler with Probability calculations
+            total_fitness = 0
+            for player in players:
+                total_fitness += player.fitness
+            probabilities = []
+            for player in players:
+                probabilities.append(player.fitness / total_fitness)
+            # turn it to cumulative probability
+            for i in range(1, len(players)):
+                probabilities[i] += probabilities[i - 1]
+
+            # Second Part Choosing Randomly on the Ruler
+
+            results = []
+            for random_number in np.random.uniform(low=0, high=1, size=num_players):
+                for i, probability in enumerate(probabilities):
+                    if random_number <= probability:
+                        results.append(copy.deepcopy(players[i]))
+                    break
+
+        # TODO (additional): plotting
+    def save_fitness(self, players):
+        if not os.path.exists('fitness'):
+            os.makedirs('fitness')
+
+        f = open("fitness/" + self.mode +".txt", "a")
+        for p in players:
+            f.write(str(p.fitness))
+            f.write(" ")
+        f.write("\n")
+        f.close()
+
+    def save_fitness_average_max_min(self, players):
+
+        players.sort(key=lambda x: x.fitness, reverse=True)
+
+        total_sum = 0
+        for player in players: total_sum = total_sum + player.fitness
+        maximum = players[0].fitness
+        minimum = players[len(players) - 1].fitness
+        average = total_sum / len(players)
+
+        if not os.path.exists('fitnessAverage'):
+            os.makedirs('fitnessAverage')
+
+        f = open("fitnessAverage/" + self.mode +".txt", "a")
+        #f.write(str(counter))
+        #f.write(" ")
+        f.write(str(minimum))
+        f.write(" ")
+        f.write(str(maximum))
+        f.write(" ")
+        f.write(str(average))
+        f.write(" ")
+        f.write("\n")
+        f.close()
+
+
+
